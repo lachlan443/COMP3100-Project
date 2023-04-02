@@ -11,22 +11,22 @@ public class TCPClient {
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
             //DataInputStream in = new DataInputStream(s.getInputStream());
             DataOutputStream out = new DataOutputStream(s.getOutputStream());
+            String data;
+
+            //Start of the 3 way handshake, client sends HELO
             out.write(("HELO\n").getBytes());
             out.flush();
-
-            // UTF is a string encoding see Sn 4.3
-            String data = in.readLine();
+            data = in.readLine();
             System.out.println("Received: " + data);
 
-
+            //Server responds OK, client sends AUTH.
             if (data.equals("OK")) {
-                out.write(("AUTH xxxx\n").getBytes());
+                out.write(("AUTH 47156074\n").getBytes());
                 out.flush();
                 data = in.readLine();
                 System.out.println("Received: " + data);
             }
 
-            
             if (data.equals("OK")) {
                 out.write(("REDY\n").getBytes());
                 out.flush();
