@@ -30,9 +30,7 @@ public class TCPClient {
                 System.out.println("Received: " + data);
             }
 
-            boolean moreJobs = true;
             boolean executeOnce = true;
-
             String largestServer = null;
             int largestServerCount = 0;
             int largestServerCores = 0;
@@ -44,22 +42,18 @@ public class TCPClient {
             int currentServerID = 0;
 
             //For each job.
-            while (moreJobs) {
+            while (true) {
                 out.write(("REDY\n").getBytes());
                 System.out.println("Sent: REDY");
                 out.flush();
 
-
                 data = in.readLine();
                 System.out.println("Recieved: " + data);
-
+                //Split the response by the whitespaces.
                 request = data.split("\\s");
-
-
 
             
                 if (data.equals("NONE")) {
-                    moreJobs = false;
                     break;
                 }
                 else if (data.equals("JCPL")) {
@@ -136,7 +130,7 @@ public class TCPClient {
 
                         //Round robin through all largest servers
                         currentServerID++;
-                        if (currentServerID >= largestServerCount - 1) {
+                        if (currentServerID >= largestServerCount) {
                             currentServerID = 0;
                         }
 
@@ -147,6 +141,7 @@ public class TCPClient {
                     }
                 }
             }
+            System.out.println(largestServerCount);
 
 
 
@@ -154,9 +149,6 @@ public class TCPClient {
             out.write(("QUIT\n").getBytes());
             System.out.println("Sent: QUIT");
             out.flush();
-
-
-            //Need to close the socket
 
 
 
@@ -171,7 +163,7 @@ public class TCPClient {
             System.out.println("IO:" + e.getMessage());
         } finally {
             if (s != null) try {
-                s.close();
+                s.close(); //Close the socket
             } catch (IOException e) {
                 System.out.println("close:" + e.getMessage());
             }
