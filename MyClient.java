@@ -1,8 +1,7 @@
 import java.net.*;
 import java.io.*;
-import java.util.ArrayList;
 
-public class TCPClient {
+public class MyClient {
     public static void main(String args[]) {
         // arguments supply message and hostname of destination
         Socket s = null;
