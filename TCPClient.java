@@ -33,6 +33,16 @@ public class TCPClient {
             boolean moreJobs = true;
             boolean executeOnce = true;
 
+            String largestServer = null;
+            int largestServerCount = 0;
+            int largestServerCores = 0;
+
+            //7 is the number of parameters in a JOBN request.
+            //JOBN submitTime jobID estRuntime core memory disk
+            String[] request = new String[7];
+            int jobID = 0;
+            int currentServerID = 0;
+
             //For each job.
             while (moreJobs) {
                 out.write(("REDY\n").getBytes());
@@ -43,6 +53,10 @@ public class TCPClient {
                 data = in.readLine();
                 System.out.println("Recieved: " + data);
 
+                request = data.split("\\s");
+
+
+
             
                 if (data.equals("NONE")) {
                     moreJobs = false;
@@ -50,9 +64,9 @@ public class TCPClient {
                 }
                 else if (data.equals("JCPL")) {
                     continue;
-                    //MIGHT NEED TO PRINT THE JCPL.
                 }
                 else { //Response must be JOBN.
+                
                     if (executeOnce) {
                         out.write(("GETS All\n").getBytes());
                         System.out.println("Sent: GETS All");
@@ -67,12 +81,9 @@ public class TCPClient {
                         int nRecs = Integer.parseInt(msgSplit[1]);
 
                         out.write(("OK\n").getBytes());
-                        System.out.println("Sent: OK");
+                        System.out.println("Sent: OK1");
                         out.flush();
 
-                        String largestServer = null;
-                        int largestServerCount = 0;
-                        int largestServerCores = 0;
                         
                         for (int i = 0; i < nRecs; i++) {
                             data = in.readLine();
@@ -101,7 +112,7 @@ public class TCPClient {
                         //     System.out.println(largestServerCores);
 
                         out.write(("OK\n").getBytes());
-                        System.out.println("Sent: OK");
+                        System.out.println("Sent: OK2");
                         out.flush();
 
                         data = in.readLine();
@@ -111,26 +122,30 @@ public class TCPClient {
                     }
 
                     //Schedule the job, and then continue the loop.
-                    // out.write(("OK\n").getBytes());
-                    // System.out.println("Sent: OK");
-                    // out.flush();
-                    
+                    //SCHD jobID serverType serverID
+                    //currentServerID is initialised to 0.
 
 
+                    if (request[0].equals("JOBN")) {
+                        //JOBN submitTime jobID estRuntime core memory disk
+                        jobID = Integer.parseInt(request[2]);
 
-                    //Find server with most core
+                        out.write(("SCHD "+jobID+" "+largestServer+" "+currentServerID+"\n").getBytes());
+                        System.out.println("SCHD "+jobID+" "+largestServer+" "+currentServerID);
+                        out.flush();
 
+                        //Round robin through all largest servers
+                        currentServerID++;
+                        if (currentServerID >= largestServerCount - 1) {
+                            currentServerID = 0;
+                        }
 
-                    //Schedule all jobs in round robin
-                    //on all instances of that one server
-
-
-
-                    //Schedule requires serverType and serverID
-                    //Need to know cores too.
+                        //Wait for response from server.
+                        while (data == in.readLine()) {
+                            continue;
+                        }
+                    }
                 }
-
-
             }
 
 
