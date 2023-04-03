@@ -45,6 +45,7 @@ public class TCPClient {
 
             
                 if (data.equals("NONE")) {
+                    moreJobs = false;
                     break;
                 }
                 else if (data.equals("JCPL")) {
@@ -69,46 +70,53 @@ public class TCPClient {
                         System.out.println("Sent: OK");
                         out.flush();
 
-
-                        ArrayList<String> serverType = new ArrayList<String>();
-                        ArrayList<String> serverID = new ArrayList<String>();
-                        ArrayList<String> serverCores = new ArrayList<String>();
+                        String largestServer = null;
+                        int largestServerCount = 0;
+                        int largestServerCores = 0;
                         
-
                         for (int i = 0; i < nRecs; i++) {
                             data = in.readLine();
                             String serverStateInfo[] = data.split("\\s");
                             //serverStateInfo = {ServerType serverID state curStartTime core memory disk #wJobs #rJobs}
 
-                            serverType.add(serverStateInfo[0]);
-                            serverID.add(serverStateInfo[1]);
-                            serverCores.add(serverStateInfo[4]);
+                            //As we iterate though servers, find the largest.
+                            boolean serverWithMoreCores = Integer.parseInt(serverStateInfo[4]) > largestServerCores;
+                            boolean sameCores = Integer.parseInt(serverStateInfo[4]) == largestServerCores;
+                            boolean sameName = serverStateInfo[0].equals(largestServer);
 
 
-                            //Schedule requires serverType and serverID
-                            //Need to know cores too.
-
-
-                            //Should find the largest and remove any from the list that are below the largest cores,
-                            //then we have a list of servers to round robin.
-
-
-                            
-
-
-                            //Result should be a list of only the largest servers.
-
-                            //Then loop through jobs, and assign to servers in round-robin.
-
-
-
-
-
+                            if (serverWithMoreCores) {
+                                largestServer = serverStateInfo[0];
+                                largestServerCount = 1;
+                                largestServerCores = Integer.parseInt(serverStateInfo[4]);
+                            }
+                            //Increment server count if another server of same type is found.
+                            if (sameCores && sameName) {
+                                largestServerCount++;
+                            }
                         }
 
-                    
+                        // System.out.println(largestServer);
+                        //     System.out.println(largestServerCount);
+                        //     System.out.println(largestServerCores);
+
+                        out.write(("OK\n").getBytes());
+                        System.out.println("Sent: OK");
+                        out.flush();
+
+                        data = in.readLine();
+                        System.out.println("Recieved: " + data);
+
                         executeOnce = false;
                     }
+
+                    //Schedule the job, and then continue the loop.
+                    // out.write(("OK\n").getBytes());
+                    // System.out.println("Sent: OK");
+                    // out.flush();
+                    
+
+
 
                     //Find server with most core
 
@@ -118,25 +126,14 @@ public class TCPClient {
 
 
 
-                    
-
-                    
-                    
-                    moreJobs = false;
-
+                    //Schedule requires serverType and serverID
+                    //Need to know cores too.
                 }
 
 
             }
 
 
-            // if (data.equals("OK")) {
-            //     out.write(("REDY\n").getBytes());
-            //     System.out.println("Sent: REDY");
-            //     out.flush();
-            //     data = in.readLine();
-            //     System.out.println("Received: " + data);
-            // }
 
             //Send quit as the final step.
             out.write(("QUIT\n").getBytes());
